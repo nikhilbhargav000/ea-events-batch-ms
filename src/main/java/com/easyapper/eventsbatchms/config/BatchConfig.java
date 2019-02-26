@@ -49,9 +49,9 @@ public class BatchConfig {
 	private StepBuilderFactory stepBuilderFactory;
 	
 	public ItemReader<OrglEventDto> myReader() {
-//		reader.addUrl(EABatchConstants.DELHI_EVENTS_URL);
+		reader.addUrl(EABatchConstants.DELHI_EVENTS_URL);
 		reader.addUrl(EABatchConstants.BANGALORE_EVENTS_URL);
-//		reader.addUrl(EABatchConstants.MUMBAI_EVENTS_URL);
+		reader.addUrl(EABatchConstants.MUMBAI_EVENTS_URL);
 		return this.reader;
 	}
 	
