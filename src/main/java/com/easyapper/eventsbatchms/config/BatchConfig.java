@@ -16,11 +16,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.easyapper.eventsbatchms.model.PostEventDto;
-import com.easyapper.eventsbatchms.model.ReadEventDto;
+import com.easyapper.eventsbatchms.listener.EventsJobExecutionListener;
+import com.easyapper.eventsbatchms.model.postevent.EventDto;
+import com.easyapper.eventsbatchms.model.readevent.OrglEventDto;
 import com.easyapper.eventsbatchms.processor.EventProcessor;
 import com.easyapper.eventsbatchms.reader.RestEventsReader;
-import com.easyapper.eventsbatchms.utilities.EAConstants;
+import com.easyapper.eventsbatchms.utilities.EABatchConstants;
 import com.easyapper.eventsbatchms.writer.EventWriter;
 
 @Configuration
@@ -30,7 +31,16 @@ public class BatchConfig {
 	private List<String> urlList = new ArrayList<String>();
 	
 	@Autowired 
-	EAConstants eaContants;
+	EABatchConstants eaContants;
+	
+	@Autowired
+	RestEventsReader reader;
+	
+	@Autowired 
+	EventProcessor processor;
+	
+	@Autowired
+	EventWriter writer;
 	
 	@Autowired
 	private JobBuilderFactory jobBuilderFactory;
@@ -38,36 +48,34 @@ public class BatchConfig {
 	@Autowired
 	private StepBuilderFactory stepBuilderFactory;
 	
-	public ItemReader<ReadEventDto> myReader() {
-		urlList.add(EAConstants.DELHI_EVENTS_URL);
-		urlList.add(EAConstants.BANGALORE_EVENTS_URL);
-		urlList.add(EAConstants.MUMBAI_EVENTS_URL);
-		return new RestEventsReader(urlList);
+	public ItemReader<OrglEventDto> myReader() {
+//		reader.addUrl(EABatchConstants.DELHI_EVENTS_URL);
+		reader.addUrl(EABatchConstants.BANGALORE_EVENTS_URL);
+//		reader.addUrl(EABatchConstants.MUMBAI_EVENTS_URL);
+		return this.reader;
 	}
 	
-	@Bean
-	public ItemProcessor<ReadEventDto, PostEventDto> processor() {
-		return new EventProcessor();
+	public ItemProcessor<OrglEventDto, List<EventDto>> processor() {
+		return this.processor;
 	}
 	
-	@Bean
-	public ItemWriter<PostEventDto> writer() {
-		return new EventWriter();
+	public ItemWriter<List<EventDto>> writer() {
+		return this.writer;
 	}
 	
 	@Bean 
-	public Job importEventsJob() {
+	public Job importEventsJob(EventsJobExecutionListener listener) {
 		return jobBuilderFactory.get("importEventsJob")
 				.incrementer(new RunIdIncrementer())
+				.listener(listener)
 				.flow(importEventStep())
 				.end()
 				.build();
 	}
 	
-	@Bean
 	public Step importEventStep() {
 		return stepBuilderFactory.get("importEventStep")
-				.<ReadEventDto, PostEventDto> chunk(10)
+				.<OrglEventDto, List<EventDto>> chunk(10)
 				.reader(myReader())
 				.processor(processor())
 				.writer(writer())

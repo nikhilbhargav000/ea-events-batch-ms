@@ -13,77 +13,91 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import com.easyapper.eventsbatchms.model.ReadEventDto;
-import com.easyapper.eventsbatchms.model.ReadEventsResponse;
+import com.easyapper.eventsbatchms.model.readevent.OrglEventDto;
+import com.easyapper.eventsbatchms.model.readevent.ReadEventsResponse;
 
-public class RestEventsReader implements ItemReader<ReadEventDto> {
+@Component
+public class RestEventsReader implements ItemReader<OrglEventDto> {
 
 	private List<String> urlList;
 	
-	private List<ReadEventDto> eventList;
+	private List<OrglEventDto> eventList;
 	
 	RestTemplate restTemplate ;
 	
 	/** Is Data refreshed for processing */
-	private boolean isEventsUpdated = false;
+	private boolean isEventsListRefreshed = false;
 	
 	/** Next Index for data to be fetched */
 	private int nextIndex = -1;
 	
-	public RestEventsReader(List<String> urlList) {
-		this.urlList = urlList;
+	public RestEventsReader() {
+		this.urlList = new ArrayList<>();
 		this.eventList = new ArrayList<>();
 		setupRestTemplate();
 	}
-	
+
+	public void addUrl(String urlList) {
+		this.urlList.add(urlList);
+	}
+
 	private void setupRestTemplate() {
-		restTemplate = new RestTemplate();
+		this.restTemplate = new RestTemplate();
+		//For Octet Stream support
 		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
 		converter.setSupportedMediaTypes(Arrays.asList( new MediaType[] {
 				MediaType.APPLICATION_JSON, 
 				MediaType.APPLICATION_OCTET_STREAM 
 			}));
-		
 		List<HttpMessageConverter<?>> converterList = new ArrayList<>();
 		converterList.add(converter);
 		restTemplate.setMessageConverters(converterList);
 	}
-	
+
+	/**
+	 *  Read Events from Endpoints
+	 */
 	@Override
-	public ReadEventDto read()
+	public OrglEventDto read()
 			throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {
-		if(this.isEventsUpdated == false) {
+		if(this.isEventsListRefreshed() == false) {
 			fetchRestEventFromApis();
 		}
-		ReadEventDto eventDto = null;
-		if(this.nextIndex < this.eventList.size()) {
-		
-			System.out.println(nextIndex);
-			
+		OrglEventDto eventDto = null;
+		if((this.nextIndex + 1) < this.eventList.size()) {
 			eventDto = this.eventList.get(++nextIndex);
 		}
 		return eventDto;
+	}
+	
+	public boolean isEventsListRefreshed() {
+		return this.isEventsListRefreshed;
+	}
+	
+	public void setEventsListRefreshed() {
+		this.isEventsListRefreshed = true;
+	}
+	
+	public void resetEventsList() {
+		this.isEventsListRefreshed = false;
+		this.eventList.clear();
+		this.nextIndex = -1;
 	}
 	
 	private void fetchRestEventFromApis() {
 		urlList.stream().forEach((url) -> {
 			this.addResponseEvents(this.eventList, url);
 		});
+		this.setEventsListRefreshed();
 	}
 	
-	private void addResponseEvents(List<ReadEventDto> readEventList, String url) {
-
-		System.out.println(readEventList);
-		System.out.println(url);
-		
+	private void addResponseEvents(List<OrglEventDto> readEventList, String url) {
 		ResponseEntity<ReadEventsResponse> response = restTemplate.getForEntity(url, ReadEventsResponse.class);
 		ReadEventsResponse responseBody = response.getBody();
-		List<ReadEventDto> responseEventList = responseBody.getEvents();
+		List<OrglEventDto> responseEventList = responseBody.getEvents();
 		readEventList.addAll(responseEventList);
-		
-		System.out.println(responseEventList);
-		
 	}
 }
