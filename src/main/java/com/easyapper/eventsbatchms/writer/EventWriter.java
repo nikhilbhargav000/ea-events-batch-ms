@@ -58,14 +58,18 @@ public class EventWriter implements ItemWriter<List<EventDto>> {
 						+ " | Response code : " + response.getStatusCode() + ""
 						+ " | Event : " + eventDto);
 			}
-		}catch(Exception e) {
-			logger.info("HttpClientErrorException | Original Event Id : " + eventDto.getOriginal_event().getId() +""
+		}catch(HttpClientErrorException  e) {
+			logger.warning("HttpClientErrorException | Original Event Id : " + eventDto.getOriginal_event().getId() +""
 					+ " | tryCount : " + tryCount
-					+ " | Event : " + eventDto);
+					+ " | Event : " + eventDto + " | Response code : " + e.getStatusCode(), e);
 			if(tryCount <= EABatchConstants.RETRYING_REQUEST_COUNT) {
 				sleepCurrentThread(5000);
 				postEvent(eventDto, (tryCount+1));
 			}
+		}catch(Exception e) {
+			logger.warning("HttpClientErrorException | Original Event Id : " + eventDto.getOriginal_event().getId() +""
+					+ " | tryCount : " + tryCount
+					+ " | Event : " + eventDto, e);
 		}
 	}
 	
