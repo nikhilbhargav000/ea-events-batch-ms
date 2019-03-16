@@ -13,6 +13,7 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,30 +29,30 @@ import com.easyapper.eventsbatchms.writer.EventWriter;
 @EnableBatchProcessing
 public class BatchConfig {
 	
-	private List<String> urlList = new ArrayList<String>();
-	
 	@Autowired 
 	EABatchConstants eaContants;
-	
 	@Autowired
 	RestEventsReader reader;
-	
 	@Autowired 
 	EventProcessor processor;
-	
 	@Autowired
 	EventWriter writer;
-	
 	@Autowired
 	private JobBuilderFactory jobBuilderFactory;
-	
 	@Autowired
 	private StepBuilderFactory stepBuilderFactory;
 	
+	@Value("#{"
+			+ "'${batch.url.list}'.split(',')"
+			+ "}")
+	List<String> urlList;
+	
 	public ItemReader<OrglEventDto> myReader() {
-		reader.addUrl(EABatchConstants.DELHI_EVENTS_URL);
-		reader.addUrl(EABatchConstants.BANGALORE_EVENTS_URL);
-		reader.addUrl(EABatchConstants.MUMBAI_EVENTS_URL);
+//		reader.addUrl(EABatchConstants.DELHI_EVENTS_URL);
+//		reader.addUrl(EABatchConstants.BANGALORE_EVENTS_URL);
+//		reader.addUrl(EABatchConstants.MUMBAI_EVENTS_URL);
+		
+		urlList.stream().forEach((url)->{reader.addUrl(url);});
 		return this.reader;
 	}
 	

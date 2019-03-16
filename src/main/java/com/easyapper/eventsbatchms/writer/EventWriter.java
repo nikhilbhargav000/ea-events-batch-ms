@@ -62,7 +62,9 @@ public class EventWriter implements ItemWriter<List<EventDto>> {
 			logger.warning("HttpClientErrorException | Original Event Id : " + eventDto.getOriginal_event().getId() +""
 					+ " | tryCount : " + tryCount
 					+ " | Event : " + eventDto + " | Response code : " + e.getStatusCode(), e);
-			if(tryCount <= EABatchConstants.RETRYING_REQUEST_COUNT) {
+			if(tryCount <= EABatchConstants.RETRYING_REQUEST_COUNT &&
+					e.getStatusCode() != HttpStatus.CONFLICT &&
+					e.getStatusCode() != HttpStatus.BAD_REQUEST) {
 				sleepCurrentThread(5000);
 				postEvent(eventDto, (tryCount+1));
 			}
