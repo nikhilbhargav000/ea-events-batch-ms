@@ -27,7 +27,6 @@ public class EventProcessor implements ItemProcessor<OrglEventDto, List<EventDto
 
 	@Autowired
 	EALogger logger;
-	
 	@Autowired
 	EABatchUtil util;
 	
@@ -57,6 +56,7 @@ public class EventProcessor implements ItemProcessor<OrglEventDto, List<EventDto
 		eventDto.getEvent_location().getAddress().setStreet(
 				readEvent.getVenue().getAddress());
 		eventDto.setEvent_type(EABatchConstants.EVENT_TYPE_POSTED);
+		eventDto.setEvent_approved(EABatchConstants.EVENT_APPROVED_VAL_1);
 		//Add Event
 		eventList.add(eventDto);
 		

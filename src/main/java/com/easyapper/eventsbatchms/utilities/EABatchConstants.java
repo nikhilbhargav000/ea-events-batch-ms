@@ -21,6 +21,8 @@ public class EABatchConstants {
 	public static final String DATE_FORMAT_PATTERN_SPPORTED_1 = "yyyy-MM-dd:HH-mm";
 	public static final String DATE_FORMAT_PATTERN_SPPORTED_2 = "yyyy-MM-dd";
 	
+	public static final String EVENT_APPROVED_VAL_1 = "1";
+	
 	public static final int RETRYING_REQUEST_COUNT = 5;
 	
 	
