@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.easyapper.eventsbatchms.exception.DateFormatNotSupportedException;
-import com.easyapper.eventsbatchms.model.readevent.OrglEventPriceDto;
+import com.easyapper.eventsbatchms.model.eventshigh.OrglEventsHighPriceDto;
 
 @Component
 public class EABatchUtil {
@@ -18,7 +18,7 @@ public class EABatchUtil {
 	@Autowired
 	EALogger logger;
 	
-	public String getPrice(OrglEventPriceDto priceDto) {
+	public String getPrice(OrglEventsHighPriceDto priceDto) {
 		return priceDto.getValue() + " " + priceDto.getCurrency();
 	}
 	

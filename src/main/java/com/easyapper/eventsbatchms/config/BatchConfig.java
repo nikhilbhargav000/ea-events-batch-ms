@@ -18,10 +18,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.easyapper.eventsbatchms.listener.EventsJobExecutionListener;
+import com.easyapper.eventsbatchms.model.eventshigh.OrglEventsHighDto;
 import com.easyapper.eventsbatchms.model.postevent.EventDto;
-import com.easyapper.eventsbatchms.model.readevent.OrglEventDto;
-import com.easyapper.eventsbatchms.processor.EventProcessor;
-import com.easyapper.eventsbatchms.reader.RestEventsReader;
+import com.easyapper.eventsbatchms.processor.EventsHighProcessor;
+import com.easyapper.eventsbatchms.reader.CsvFileReader;
+import com.easyapper.eventsbatchms.reader.EventsHighReader;
 import com.easyapper.eventsbatchms.utilities.EABatchConstants;
 import com.easyapper.eventsbatchms.writer.EventWriter;
 
@@ -32,9 +33,9 @@ public class BatchConfig {
 	@Autowired 
 	EABatchConstants eaContants;
 	@Autowired
-	RestEventsReader reader;
+	EventsHighReader reader;
 	@Autowired 
-	EventProcessor processor;
+	EventsHighProcessor processor;
 	@Autowired
 	EventWriter writer;
 	@Autowired
@@ -42,21 +43,26 @@ public class BatchConfig {
 	@Autowired
 	private StepBuilderFactory stepBuilderFactory;
 	
-	@Value("#{"
-			+ "'${batch.url.list}'.split(',')"
-			+ "}")
-	List<String> urlList;
+//	@Value("#{"
+//			+ "'${batch.url.list}'.split(',')"
+//			+ "}")
+//	List<String> urlList;
 	
-	public ItemReader<OrglEventDto> myReader() {
+	
+	
+	public ItemReader<OrglEventsHighDto> myReader() {
 //		reader.addUrl(EABatchConstants.DELHI_EVENTS_URL);
 //		reader.addUrl(EABatchConstants.BANGALORE_EVENTS_URL);
 //		reader.addUrl(EABatchConstants.MUMBAI_EVENTS_URL);
 		
-		urlList.stream().forEach((url)->{reader.addUrl(url);});
+//		urlList.stream().forEach((url)->{reader.addUrl(url.trim());});
+		
+		
+		reader.refreshUrlsFromCsvFile();
 		return this.reader;
 	}
 	
-	public ItemProcessor<OrglEventDto, List<EventDto>> processor() {
+	public ItemProcessor<OrglEventsHighDto, List<EventDto>> processor() {
 		return this.processor;
 	}
 	
@@ -76,7 +82,7 @@ public class BatchConfig {
 	
 	public Step importEventStep() {
 		return stepBuilderFactory.get("importEventStep")
-				.<OrglEventDto, List<EventDto>> chunk(10)
+				.<OrglEventsHighDto, List<EventDto>> chunk(10)
 				.reader(myReader())
 				.processor(processor())
 				.writer(writer())

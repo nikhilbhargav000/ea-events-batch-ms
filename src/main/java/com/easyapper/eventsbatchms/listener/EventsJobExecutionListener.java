@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-import com.easyapper.eventsbatchms.reader.RestEventsReader;
+import com.easyapper.eventsbatchms.reader.EventsHighReader;
 import com.easyapper.eventsbatchms.utilities.EALogger;
 
 @Component
@@ -20,16 +20,12 @@ public class EventsJobExecutionListener extends JobExecutionListenerSupport {
 	ApplicationContext appContext;
 	
 	@Autowired
-	RestEventsReader reader;
+	EventsHighReader eventsHighReader;
 	
 	@Override
 	public void beforeJob(JobExecution jobExecution) {
 		super.beforeJob(jobExecution);
 		logger.info("Before job : JOB ID : " + jobExecution.getJobId());
-//		logger.info("Before job : JOB ID : " + jobExecution.getJobId() +" : "
-//				+ "" + jobExecution);
-		
-		System.out.println("Reader : " + reader);
 	}
 			
 	@Override
@@ -38,10 +34,10 @@ public class EventsJobExecutionListener extends JobExecutionListenerSupport {
 		logger.info("After job : JOB ID : " + jobExecution.getJobId() + ""
 				+ "\nSTATUS : " + jobExecution.getStatus() );
 		
-		if(this.reader == null) {
-			reader = appContext.getBean(RestEventsReader.class);
+		if(this.eventsHighReader == null) {
+			eventsHighReader = appContext.getBean(EventsHighReader.class);
 		}
-		reader.resetEventsList();
+		eventsHighReader.resetReader();
 	}
 	
 }
