@@ -61,6 +61,7 @@ public class EventsHighProcessor implements ItemProcessor<OrglEventsHighDto, Lis
 				readEvent.getVenue().getAddress());
 		eventDto.setEvent_type(EABatchConstants.EVENT_TYPE_POSTED);
 		eventDto.setEvent_approved(EABatchConstants.EVENT_APPROVED_VAL_1);
+		eventDto.setEvent_price(this.getProcessedPrice(readEvent));
 		//Add Event
 		eventList.add(eventDto);
 		
@@ -77,7 +78,6 @@ public class EventsHighProcessor implements ItemProcessor<OrglEventsHighDto, Lis
 			return eventList;
 		}
 		//Other
-		this.addMultiEvents_Price(readEvent, eventList);
 		this.addMultiEvents_Cats(readEvent, eventList);
 		return eventList;
 	}
@@ -199,28 +199,48 @@ public class EventsHighProcessor implements ItemProcessor<OrglEventsHighDto, Lis
 //		eventList.addAll(toAddEventList);
 //	}
 	
-	/**
-	 * Add MultiEvents to eventList
-	 * @param readEvent
-	 * @param eventList
-	 * @throws CloneNotSupportedException
-	 */
-	private void addMultiEvents_Price(OrglEventsHighDto readEvent, 
-			List<EventDto> eventList) throws CloneNotSupportedException{
-		
+//	/**
+//	 * Add MultiEvents to eventList
+//	 * @param readEvent
+//	 * @param eventList
+//	 * @throws CloneNotSupportedException
+//	 */
+//	private void setProcessedPrice(OrglEventsHighDto readEvent, 
+//			List<EventDto> eventList) throws CloneNotSupportedException{
+//		List<OrglEventsHighPriceDto> priceList = readEvent.getPrice();
+//		List<EventDto> toRemoveEventList = new ArrayList<>();
+//		List<EventDto> toAddEventList = new ArrayList();
+//		for(EventDto eventDto : eventList) {
+//			toRemoveEventList.add(eventDto);
+//			String newPrice;
+//			for(OrglEventsHighPriceDto priceDto : priceList) {
+//				EventDto newEventDto = (EventDto) eventDto.clone();
+//				toAddEventList.add(newEventDto);
+//				newPrice = util.getPrice(priceDto);
+//			}
+//		}
+//		eventList.removeAll(toRemoveEventList);
+//		eventList.addAll(toAddEventList);
+//	}
+	private String getProcessedPrice(OrglEventsHighDto readEvent){
+		String processPrice = "";
 		List<OrglEventsHighPriceDto> priceList = readEvent.getPrice();
-		List<EventDto> toRemoveEventList = new ArrayList<>();
-		List<EventDto> toAddEventList = new ArrayList();
-		for(EventDto eventDto : eventList) {
-			toRemoveEventList.add(eventDto);
-			String newPrice;
-			for(OrglEventsHighPriceDto priceDto : priceList) {
-				EventDto newEventDto = (EventDto) eventDto.clone();
-				toAddEventList.add(newEventDto);
-				newPrice = util.getPrice(priceDto);
+		double minPrice = priceList.get(0).getValue();
+		double maxPrice = priceList.get(0).getValue();
+		for(OrglEventsHighPriceDto priceDto : priceList) {
+			if(minPrice > priceDto.getValue()) {
+				minPrice = priceDto.getValue();
+			}
+			if(maxPrice < priceDto.getValue()) {
+				maxPrice = priceDto.getValue();
 			}
 		}
-		eventList.removeAll(toRemoveEventList);
-		eventList.addAll(toAddEventList);
+		if(maxPrice != minPrice) {
+			processPrice = priceList.get(0).getCurrency() + " " + String.valueOf(minPrice) + " - " + 
+					String.valueOf(maxPrice);
+		}else {
+			processPrice = priceList.get(0).getCurrency() + " " + String.valueOf(minPrice) ;
+		}
+		return processPrice;
 	}
 }
