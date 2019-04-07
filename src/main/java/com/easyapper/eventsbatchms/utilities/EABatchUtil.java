@@ -22,15 +22,27 @@ public class EABatchUtil {
 		return priceDto.getValue() + " " + priceDto.getCurrency();
 	}
 	
-	private String getDateUATStr(Date dateObj) {
+	public  String geEATimeFormatStr(String timeStr) {
 		SimpleDateFormat dateFormat = new SimpleDateFormat(EABatchConstants.DATE_UAT_FORMAT_PATTERN);
-		return dateFormat.format(dateObj);
-	}
-
-
-	public String getDateUATStr(String strDate) throws DateFormatNotSupportedException {
-		String strUatDate = null;
 		
+		List<String> timeFormatPatternList = new ArrayList<>();
+		timeFormatPatternList.add(EABatchConstants.TIME_FORMAT_PATTERN_SPPORTED_1);
+		Date dateObj = null;
+		for(String timeFormatPattern : timeFormatPatternList) {
+			dateObj = this.getDateFormatObj(timeStr, timeFormatPattern);
+			if(dateObj != null) {
+				break;
+			}
+		}
+		return this.geEATimeFormatStr(dateObj);
+	}
+	
+	public String getDateUATStr(String strDate) throws DateFormatNotSupportedException {
+		Date dateObj = this.getDateIfInputSupported(strDate);
+		return this.getDateUATStr(dateObj);
+	}
+	
+	public Date getDateIfInputSupported(String strDate) throws DateFormatNotSupportedException {
 		List<String> dateFormatPatternList = new ArrayList<>();
 		dateFormatPatternList.add(EABatchConstants.DATE_FORMAT_PATTERN_SPPORTED_1);
 		dateFormatPatternList.add(EABatchConstants.DATE_FORMAT_PATTERN_SPPORTED_2);
@@ -44,7 +56,17 @@ public class EABatchUtil {
 		if(dateObj == null) {
 			throw new DateFormatNotSupportedException();
 		}
-		return this.getDateUATStr(dateObj);
+		return dateObj; 
+	}
+	
+	public String getDateUATStr(Date dateObj) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat(EABatchConstants.DATE_UAT_FORMAT_PATTERN);
+		return dateFormat.format(dateObj);
+	}
+	
+	public String geEATimeFormatStr(Date dateObj) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat(EABatchConstants.TIME_EA_FORMAT_PATTERN);
+		return dateFormat.format(dateObj);
 	}
 	
 	private Date getDateFormatObj(String strDate, String formatPatter) {
@@ -56,5 +78,6 @@ public class EABatchUtil {
 			return null;
 		}
 	}
+	
 	
 }

@@ -23,16 +23,6 @@ public class EACategoryValidator {
 		List<CategoryDto> categories = null;
 		
 		
-		try {
-			String url = EABatchConstants.GET_CATEGORIES_URL;
-			ResponseEntity<CategoriesResponseDto> response = restTemplate.getForEntity(url, CategoriesResponseDto.class);
-			if(response != null && response.getBody() != null) {
-				categories = response.getBody().getCategories();
-			}
-		} catch (Exception e) {
-			
-		}
-		
 		return categories;
 	}
 }

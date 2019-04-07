@@ -19,8 +19,11 @@ public class EABatchConstants {
 	public static final String BATCH_USER_ID = "batch_user";
 
 	public static final String DATE_UAT_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
+	public static final String TIME_EA_FORMAT_PATTERN = "HH:mm";
 	public static final String DATE_FORMAT_PATTERN_SPPORTED_1 = "yyyy-MM-dd:HH-mm";
 	public static final String DATE_FORMAT_PATTERN_SPPORTED_2 = "yyyy-MM-dd";
+	
+	public static final String TIME_FORMAT_PATTERN_SPPORTED_1 = "HH:mm:ss";
 	
 	public static final String EVENT_APPROVED_VAL_1 = "1";
 	

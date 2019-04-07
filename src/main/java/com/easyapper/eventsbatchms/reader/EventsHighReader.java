@@ -35,6 +35,7 @@ public class EventsHighReader implements ItemReader<OrglEventsHighDto> {
 	@Value("${eventshigh.urls.filepath}")
 	String eventshighFilename;
 	
+	@Autowired
 	RestTemplate restTemplate ;
 	
 	/** Is Data refreshed for processing */
@@ -46,24 +47,10 @@ public class EventsHighReader implements ItemReader<OrglEventsHighDto> {
 	public EventsHighReader() {
 		this.eventsHighUrlList = new ArrayList<>();
 		this.eventList = new ArrayList<>();
-		setupRestTemplate();
 	}
 
 	public void addUrl(String urlList) {
 		this.eventsHighUrlList.add(urlList);
-	}
-
-	private void setupRestTemplate() {
-		this.restTemplate = new RestTemplate();
-		//For Octet Stream support
-		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-		converter.setSupportedMediaTypes(Arrays.asList( new MediaType[] {
-				MediaType.APPLICATION_JSON, 
-				MediaType.APPLICATION_OCTET_STREAM 
-			}));
-		List<HttpMessageConverter<?>> converterList = new ArrayList<>();
-		converterList.add(converter);
-		restTemplate.setMessageConverters(converterList);
 	}
 
 	/**
