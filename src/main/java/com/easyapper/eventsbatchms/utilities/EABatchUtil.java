@@ -1,12 +1,15 @@
 package com.easyapper.eventsbatchms.utilities;
 
+import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.easyapper.eventsbatchms.exception.DateFormatNotSupportedException;
@@ -17,6 +20,16 @@ public class EABatchUtil {
 	
 	@Autowired
 	EALogger logger;
+	
+	@Value("${category.regex.dir}")
+	String categoryRegexDir;
+	
+	public String getCategoryRegexFilePath(String fileName) {
+		if(StringUtils.isNoneBlank(categoryRegexDir)) {
+			return categoryRegexDir + fileName;
+		}
+		return null;
+	}
 	
 	public String getPrice(OrglEventsHighPriceDto priceDto) {
 		return priceDto.getValue() + " " + priceDto.getCurrency();

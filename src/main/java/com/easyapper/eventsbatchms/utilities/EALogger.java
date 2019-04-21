@@ -31,15 +31,15 @@ public class EALogger {
 	}
 	
 	public void info(String msg){
-		logger.info("EASY_APPER : INFO : " + msg);
+		logger.info("EASY_APPER : " + msg);
 	}
 
 	public void warning(String msg){
-		logger.warning("EASY_APPER : WARNING : " + msg);
+		logger.warning("EASY_APPER >>>>>>>>>> " + msg);
 	}
 	
 	public void warning(String msg, Exception e){
-		String logMsg = "EASY_APPER : WARNING : " + msg;
+		String logMsg = "EASY_APPER >>>>>>>>>> " + msg;
 		logger.log(Level.WARNING, logMsg, e);
 	}
 	

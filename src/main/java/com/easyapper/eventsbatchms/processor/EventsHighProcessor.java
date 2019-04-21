@@ -1,5 +1,6 @@
 package com.easyapper.eventsbatchms.processor;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -8,8 +9,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
-import org.apache.camel.management.event.RouteRemovedEvent;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.core.ItemProcessListener;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.item.ItemProcessor;
@@ -21,20 +25,25 @@ import com.easyapper.eventsbatchms.model.common.Pair;
 import com.easyapper.eventsbatchms.model.eventshigh.OrglEventsHighDto;
 import com.easyapper.eventsbatchms.model.eventshigh.OrglEventsHighPriceDto;
 import com.easyapper.eventsbatchms.model.eventshigh.OrglEventsHighUpcomingOccurrenceDto;
+import com.easyapper.eventsbatchms.model.postevent.CategoryDto;
 import com.easyapper.eventsbatchms.model.postevent.EventBookingDto;
 import com.easyapper.eventsbatchms.model.postevent.EventDto;
 import com.easyapper.eventsbatchms.model.postevent.LocationDto;
+import com.easyapper.eventsbatchms.provider.EAEventsMsProvider;
+import com.easyapper.eventsbatchms.reader.CsvFileReader;
 import com.easyapper.eventsbatchms.utilities.EABatchUtil;
 import com.easyapper.eventsbatchms.utilities.EABatchConstants;
 import com.easyapper.eventsbatchms.utilities.EALogger;
 
 @Component
 public class EventsHighProcessor implements ItemProcessor<OrglEventsHighDto, List<EventDto>> {
-
+	
 	@Autowired
 	EALogger logger;
 	@Autowired
 	EABatchUtil util;
+	@Autowired
+	EAEventsMsProvider eaProvider;
 	
 	@Override
 	public List<EventDto> process(OrglEventsHighDto readEvent) throws Exception {
@@ -64,8 +73,6 @@ public class EventsHighProcessor implements ItemProcessor<OrglEventsHighDto, Lis
 		eventDto.setEvent_price(this.getProcessedPrice(readEvent));
 		//Add Event
 		eventList.add(eventDto);
-		
-//		addMultiEvents_UpcomingOccurences(readEvent, eventList);
 		//Set Date and Time
 		Pair<List<String>, List<String>> pair = this.getTimeArrPair(readEvent);
 		try {
@@ -152,76 +159,58 @@ public class EventsHighProcessor implements ItemProcessor<OrglEventsHighDto, Lis
 	 */
 	private void addMultiEvents_Cats(OrglEventsHighDto readEvent, 
 			List<EventDto> eventList) throws CloneNotSupportedException{
-		
 		List<String> catList = readEvent.getCats();
 		List<EventDto> toRemoveEventList = new ArrayList<>();
 		List<EventDto> toAddEventList = new ArrayList();
 		for(EventDto eventDto : eventList) {
 			toRemoveEventList.add(eventDto);
 			for(String cat : catList) {
-				EventDto newEventDto = (EventDto) eventDto.clone();
-				newEventDto.setEvent_category(cat);
-				toAddEventList.add(newEventDto);
+				String categoryName = this.getCategoryName(cat); 
+				if(StringUtils.isNotEmpty(categoryName)) {
+					EventDto newEventDto = (EventDto) eventDto.clone();
+					newEventDto.setEvent_category(categoryName);
+					newEventDto.setEvent_subcategory(cat);
+					toAddEventList.add(newEventDto);
+				}
 			}
 		}
 		eventList.removeAll(toRemoveEventList);
 		eventList.addAll(toAddEventList);
 	}
 	
-//	/**
-//	 * Add MultiEvents to eventList
-//	 * @param readEvent
-//	 * @param eventList
-//	 * @throws CloneNotSupportedException
-//	 */
-//	private void addMultiEvents_UpcomingOccurences(OrglEventsHighDto readEvent, 
-//			List<EventDto> eventList) throws CloneNotSupportedException{
-//
-//		List<OrglEventsHighUpcomingOccurrenceDto> upcomingOccList = readEvent.getUpcoming_occurrences();
-//		List<EventDto> toRemoveEventList = new ArrayList<>();
-//		List<EventDto> toAddEventList = new ArrayList();
-//		for(EventDto eventDto : eventList) {
-//			toRemoveEventList.add(eventDto);
-//			for(OrglEventsHighUpcomingOccurrenceDto upcomingOcc : upcomingOccList) {
-//				EventDto newEventDto = (EventDto) eventDto.clone();
-//				try {
-//					newEventDto.setEvent_start_date(util.getDateUATStr( upcomingOcc.getDate()));
-//					newEventDto.setEvent_last_date(util.getDateUATStr( upcomingOcc.getEnd_date()));
-//					newEventDto.setEvent_start_time(util.geEATimeFormatStr( upcomingOcc.getStart_time()));
-//					newEventDto.setEvent_end_time(util.geEATimeFormatStr( upcomingOcc.getEnd_time()));
-//					toAddEventList.add(newEventDto);
-//				} catch (DateFormatNotSupportedException e) {
-//					logger.warning("Date format not supported | eventId : " + readEvent.getId(), e);
-//				}
-//			}
-//		}
-//		eventList.removeAll(toRemoveEventList);
-//		eventList.addAll(toAddEventList);
-//	}
+	private String getCategoryName(String subCategory) {
+		String categoryName = null;
+		List<CategoryDto> categories = eaProvider.getCategories();
+		if(CollectionUtils.isNotEmpty(categories)) {
+			/* Return first match of regex from list */
+			CsvFileReader csvFileReader;
+			for(CategoryDto categoryDto : categories ) {
+				if(StringUtils.isNotEmpty(categoryDto.getRegexFileName()) && 
+						StringUtils.isNotEmpty( util.getCategoryRegexFilePath(categoryDto.getRegexFileName()) )) {
+					csvFileReader = new CsvFileReader(util.getCategoryRegexFilePath(categoryDto.getRegexFileName()));
+					List<String> regexList = csvFileReader.getList();
+					if(CollectionUtils.isNotEmpty(regexList)) {
+						for(String regex : regexList) {
+							try {
+								if(regex != null && subCategory != null 
+										&& Pattern.matches(regex, subCategory)) {
+									return categoryDto.getName();
+								}
+							}catch(PatternSyntaxException e){
+								logger.warning("Invalid regular experession expection : " + regex + ""
+										+ " | Category : " + categoryDto);
+								continue;
+							}
+						}
+					}else {
+						logger.warning("Seems unable to find regex list for category : " + categoryDto); 
+					}
+				}
+			}
+		}
+		return categoryName;
+	}
 	
-//	/**
-//	 * Add MultiEvents to eventList
-//	 * @param readEvent
-//	 * @param eventList
-//	 * @throws CloneNotSupportedException
-//	 */
-//	private void setProcessedPrice(OrglEventsHighDto readEvent, 
-//			List<EventDto> eventList) throws CloneNotSupportedException{
-//		List<OrglEventsHighPriceDto> priceList = readEvent.getPrice();
-//		List<EventDto> toRemoveEventList = new ArrayList<>();
-//		List<EventDto> toAddEventList = new ArrayList();
-//		for(EventDto eventDto : eventList) {
-//			toRemoveEventList.add(eventDto);
-//			String newPrice;
-//			for(OrglEventsHighPriceDto priceDto : priceList) {
-//				EventDto newEventDto = (EventDto) eventDto.clone();
-//				toAddEventList.add(newEventDto);
-//				newPrice = util.getPrice(priceDto);
-//			}
-//		}
-//		eventList.removeAll(toRemoveEventList);
-//		eventList.addAll(toAddEventList);
-//	}
 	private String getProcessedPrice(OrglEventsHighDto readEvent){
 		String processPrice = "";
 		List<OrglEventsHighPriceDto> priceList = readEvent.getPrice();
@@ -235,12 +224,15 @@ public class EventsHighProcessor implements ItemProcessor<OrglEventsHighDto, Lis
 				maxPrice = priceDto.getValue();
 			}
 		}
+		DecimalFormat decimalFormat = new DecimalFormat();
+		decimalFormat.setMaximumFractionDigits(2);
 		if(maxPrice != minPrice) {
-			processPrice = priceList.get(0).getCurrency() + " " + String.valueOf(minPrice) + " - " + 
-					String.valueOf(maxPrice);
+			processPrice = priceList.get(0).getCurrency() + " " + decimalFormat.format(minPrice) + " - " + 
+					decimalFormat.format(maxPrice);
 		}else {
-			processPrice = priceList.get(0).getCurrency() + " " + String.valueOf(minPrice) ;
+			processPrice = priceList.get(0).getCurrency() + " " + decimalFormat.format(minPrice) ;
 		}
 		return processPrice;
 	}
+	
 }

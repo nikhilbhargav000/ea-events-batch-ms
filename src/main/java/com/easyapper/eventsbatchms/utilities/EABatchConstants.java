@@ -7,8 +7,8 @@ public class EABatchConstants {
 	
 	
 	public static final String BATCH_REQUEST_USER_NAME = "Batch_Request_User";
-	public static final String POST_REQUEST_EVENTS_URL = "http://localhost:8080/users/" + BATCH_REQUEST_USER_NAME + "/events/";
-	public static final String GET_CATEGORIES_URL = "http://localhost:8080/categories";
+	public static final String EA_POST_REQUEST_EVENTS_URL = "http://localhost:8080/users/" + BATCH_REQUEST_USER_NAME + "/events/";
+	public static final String EA_GET_CATEGORIES_URL = "http://localhost:8080/categories";
 	
 	public static final String DELHI_EVENTS_URL = "https://developer.eventshigh.com/events/delhi?key=ev3nt5h1ghte5tK3y";
 	public static final String BANGALORE_EVENTS_URL = "https://developer.eventshigh.com/events/bangalore?key=ev3nt5h1ghte5tK3y&cf=kids";

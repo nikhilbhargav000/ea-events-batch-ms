@@ -2,22 +2,16 @@ package com.easyapper.eventsbatchms.model.postevent;
 
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+
+@AllArgsConstructor @NoArgsConstructor
+@Getter @Setter
+@ToString
 public class CategoriesResponseDto {
 	List<CategoryDto> categories;
-	//Constructor
-	public CategoriesResponseDto(List<CategoryDto> categories) {
-		super();
-		this.categories = categories;
-	}
-	//Getter and Setter
-	public List<CategoryDto> getCategories() {
-		return categories;
-	}
-	public void setCategories(List<CategoryDto> categories) {
-		this.categories = categories;
-	}
-	@Override
-	public String toString() {
-		return "CategoriesResponseDTO [categories=" + categories + "]";
-	}
 }

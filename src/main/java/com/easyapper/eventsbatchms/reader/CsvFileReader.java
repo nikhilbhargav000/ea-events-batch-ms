@@ -34,9 +34,11 @@ public class CsvFileReader {
 			}
 			
 		} catch (FileNotFoundException e) {
-			logger.warning("Invalid file path : " + this.filePath, e);
+			logger.warning("Invalid file path (Fle not found) : " + this.filePath, e);
 		} catch (IOException e) {
 			logger.warning("Invalid file path : " + this.filePath, e);
+		} catch (Exception e) {
+			logger.warning("Error while reading from file : " + this.filePath, e);
 		} finally {
 			if(csvReader != null) {
 				try {

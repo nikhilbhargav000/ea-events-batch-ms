@@ -41,7 +41,7 @@ public class EventWriter implements ItemWriter<List<EventDto>> {
 	}
 	
 	private void postEvent(EventDto eventDto, int tryCount) {
-		String url = EABatchConstants.POST_REQUEST_EVENTS_URL;
+		String url = EABatchConstants.EA_POST_REQUEST_EVENTS_URL;
 				
 		ResponseEntity<String> response = null;
 		try {
