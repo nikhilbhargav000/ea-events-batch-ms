@@ -8,16 +8,15 @@ import lombok.ToString;
 @NoArgsConstructor
 @Getter @Setter
 @ToString
-public class OrglEventsHighUpcomingOccurrenceDto {
-	
-	private long occurrence_id;
+public class EventsHighPriceOccurrenceDto {
+
 	private String date;
 	private String end_date;
-	private String start_time;
+	private String time;
 	private String end_time;
-	private int single_occurrence;
-	private String timezone;
-	private boolean enable_ticketing;
+	private int occurrence_id;
+	private String group_id;
+	private String is_valid;
+	private int id;
 	
-
 }

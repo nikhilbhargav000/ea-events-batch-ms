@@ -8,7 +8,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @Getter @Setter
 @ToString
-public class OrglEventsHighVenueDto {
+public class EventsHighVenueDto {
 	private String name;
 	private String address;
 	private double lat;

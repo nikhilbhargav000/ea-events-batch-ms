@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.easyapper.eventsbatchms.exception.DateFormatNotSupportedException;
-import com.easyapper.eventsbatchms.model.eventshigh.OrglEventsHighPriceDto;
+import com.easyapper.eventsbatchms.model.eventshigh.EventsHighPriceDto;
 
 @Component
 public class EABatchUtil {
@@ -31,11 +31,11 @@ public class EABatchUtil {
 		return null;
 	}
 	
-	public String getPrice(OrglEventsHighPriceDto priceDto) {
+	public String getPrice(EventsHighPriceDto priceDto) {
 		return priceDto.getValue() + " " + priceDto.getCurrency();
 	}
 	
-	public  String geEATimeFormatStr(String timeStr) {
+	public  String getEATimeFormatStr(String timeStr) {
 		SimpleDateFormat dateFormat = new SimpleDateFormat(EABatchConstants.DATE_UAT_FORMAT_PATTERN);
 		
 		List<String> timeFormatPatternList = new ArrayList<>();
@@ -47,7 +47,7 @@ public class EABatchUtil {
 				break;
 			}
 		}
-		return this.geEATimeFormatStr(dateObj);
+		return this.getEATimeFormatStr(dateObj);
 	}
 	
 	public String getDateUATStr(String strDate) throws DateFormatNotSupportedException {
@@ -55,6 +55,13 @@ public class EABatchUtil {
 		return this.getDateUATStr(dateObj);
 	}
 	
+	/**
+	 *  For EventsHigh
+	 *  
+	 * @param strDate
+	 * @return
+	 * @throws DateFormatNotSupportedException
+	 */
 	public Date getDateIfInputSupported(String strDate) throws DateFormatNotSupportedException {
 		List<String> dateFormatPatternList = new ArrayList<>();
 		dateFormatPatternList.add(EABatchConstants.DATE_FORMAT_PATTERN_SPPORTED_1);
@@ -77,12 +84,12 @@ public class EABatchUtil {
 		return dateFormat.format(dateObj);
 	}
 	
-	public String geEATimeFormatStr(Date dateObj) {
+	public String getEATimeFormatStr(Date dateObj) {
 		SimpleDateFormat dateFormat = new SimpleDateFormat(EABatchConstants.TIME_EA_FORMAT_PATTERN);
 		return dateFormat.format(dateObj);
 	}
 	
-	private Date getDateFormatObj(String strDate, String formatPatter) {
+	public Date getDateFormatObj(String strDate, String formatPatter) {
 		SimpleDateFormat dateFormat = new SimpleDateFormat(formatPatter);
 		try {
 			return dateFormat.parse(strDate);

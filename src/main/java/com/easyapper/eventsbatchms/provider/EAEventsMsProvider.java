@@ -2,13 +2,19 @@ package com.easyapper.eventsbatchms.provider;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -26,7 +32,12 @@ import com.easyapper.eventsbatchms.utilities.EALogger;
 public class EAEventsMsProvider {
 
 	@Autowired
-	RestTemplate restTemplate;
+	@Qualifier("eaStringRestTemplate")
+	RestTemplate restTemplateForString;
+	
+	@Autowired
+	@Qualifier("eaRestTemplate")
+	RestTemplate restTemplateForJson;
 	
 	@Autowired
 	EALogger logger;
@@ -34,7 +45,12 @@ public class EAEventsMsProvider {
 	public void postEvent(EventDto eventDto) throws HttpClientErrorException, Exception{
 		String url = EABatchConstants.EA_POST_REQUEST_EVENTS_URL;
 		
-		ResponseEntity<String> response = restTemplate.postForEntity(url, eventDto, String.class);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.setAccept(Arrays.asList(MediaType.TEXT_PLAIN));
+		HttpEntity requestEntity = new HttpEntity(eventDto, headers);
+		ResponseEntity<String> response = restTemplateForString.exchange(url, HttpMethod.POST, requestEntity, String.class);
+		
 		if(response.getStatusCode() == HttpStatus.CREATED) {
 			logger.info("Event created successfully | New Id : " + response.getBody() + ""
 					+ " | Original Event Id : " + eventDto.getOriginal_event().getId());
@@ -59,10 +75,9 @@ public class EAEventsMsProvider {
 			Map<String, String> params = new HashMap<>();
 			int page = 1;
 			do {
-				
 				URI categoryUri = UriComponentsBuilder.fromUriString(url)
 						.queryParam("page", String.valueOf(page++)).build().toUri();
-				categoriesResponse = restTemplate.getForEntity(categoryUri, CategoriesResponseDto.class);
+				categoriesResponse = restTemplateForJson.getForEntity(categoryUri, CategoriesResponseDto.class);
 				if(categoriesResponse != null && 
 					CollectionUtils.isNotEmpty(categoriesResponse.getBody().getCategories())) {
 				categories.addAll(categoriesResponse.getBody().getCategories());

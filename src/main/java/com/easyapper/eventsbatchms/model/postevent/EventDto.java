@@ -3,7 +3,7 @@ package com.easyapper.eventsbatchms.model.postevent;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Null;
 
-import com.easyapper.eventsbatchms.model.eventshigh.OrglEventsHighDto;
+import com.easyapper.eventsbatchms.model.common.AbstractOriginalEvent;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Getter;
@@ -35,7 +35,7 @@ public class EventDto implements Cloneable{
 	private EventBookingDto event_booking;
 	@ToString.Exclude 
 	@JsonIgnore
-	private OrglEventsHighDto original_event;
+	private AbstractOriginalEvent original_event;
 	private String event_approved;
 	//For subscribed
 	private String posted_event_id;
@@ -46,7 +46,7 @@ public class EventDto implements Cloneable{
 			LocationDto event_location, String organizer_email, String event_name, String event_description,
 			String event_image_url, String event_start_date, String event_last_date, String event_min_age,
 			String event_max_age, String event_price, EventBookingDto event_booking,
-			OrglEventsHighDto original_event, String approved) {
+			AbstractOriginalEvent original_event, String approved) {
 		super();
 		this._id = _id;
 		this.user_id = user_id;

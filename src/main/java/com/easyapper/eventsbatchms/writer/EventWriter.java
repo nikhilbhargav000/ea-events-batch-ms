@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -22,9 +23,6 @@ public class EventWriter implements ItemWriter<List<EventDto>> {
 
 	@Autowired
 	EALogger logger;
-	
-	@Autowired
-	RestTemplate restTemplate;
 	
 	@Autowired
 	EAEventsMsProvider eaEventsProvider;
@@ -45,24 +43,7 @@ public class EventWriter implements ItemWriter<List<EventDto>> {
 				
 		ResponseEntity<String> response = null;
 		try {
-			
 			eaEventsProvider.postEvent(eventDto);
-			
-//			response = restTemplate.postForEntity(url, eventDto, String.class);
-//			if(response.getStatusCode() == HttpStatus.CREATED) {
-//				logger.info("Event created successfully | New Id : " + response.getBody() + ""
-//						+ " | Original Event Id : " + eventDto.getOriginal_event().getId());
-//			}else if(response.getStatusCode() == HttpStatus.CONFLICT) {
-//				logger.info("Event already exist | Failed to created successfully"
-//						+ " | Original Event Id : " + eventDto.getOriginal_event().getId() +""
-//						+ " | Response code : " + response.getStatusCode() + ""
-//						+ " | Event : " + eventDto);
-//			}
-//			else {
-//				logger.info("Failed to created successfully | Original Event Id : " + eventDto.getOriginal_event().getId() +""
-//						+ " | Response code : " + response.getStatusCode() + ""
-//						+ " | Event : " + eventDto);
-//			}
 		}catch(HttpClientErrorException  e) {
 			logger.warning("HttpClientErrorException | Response code : " + e.getStatusCode() + "| Original Event Id : " + eventDto.getOriginal_event().getId() +""
 					+ " | tryCount : " + tryCount

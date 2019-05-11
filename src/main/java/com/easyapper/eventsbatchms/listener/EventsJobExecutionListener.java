@@ -1,5 +1,6 @@
 package com.easyapper.eventsbatchms.listener;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import com.easyapper.eventsbatchms.config.BatchConfig;
 import com.easyapper.eventsbatchms.reader.EventsHighReader;
 import com.easyapper.eventsbatchms.utilities.EALogger;
 
@@ -19,8 +21,7 @@ public class EventsJobExecutionListener extends JobExecutionListenerSupport {
 	@Autowired
 	ApplicationContext appContext;
 	
-	@Autowired
-	EventsHighReader eventsHighReader;
+	BatchConfig batchConfig;
 	
 	@Override
 	public void beforeJob(JobExecution jobExecution) {
@@ -34,10 +35,16 @@ public class EventsJobExecutionListener extends JobExecutionListenerSupport {
 		logger.info("After job : JOB ID : " + jobExecution.getJobId() + ""
 				+ "\nSTATUS : " + jobExecution.getStatus() );
 		
-		if(this.eventsHighReader == null) {
-			eventsHighReader = appContext.getBean(EventsHighReader.class);
+		if (this.batchConfig == null) {
+			batchConfig = appContext.getBean(BatchConfig.class);
 		}
-		eventsHighReader.resetReader();
+		if (CollectionUtils.isEmpty(batchConfig.getReaderList())) {
+			batchConfig.registerReaders();
+		} else {
+			batchConfig.getReaderList().stream().forEach((eventReader) -> {
+				eventReader.resetReader();
+			});
+		}
 	}
 	
 }

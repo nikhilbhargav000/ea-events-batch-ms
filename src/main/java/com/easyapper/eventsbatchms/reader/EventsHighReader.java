@@ -9,6 +9,7 @@ import org.springframework.batch.item.NonTransientResourceException;
 import org.springframework.batch.item.ParseException;
 import org.springframework.batch.item.UnexpectedInputException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,90 +19,89 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import com.easyapper.eventsbatchms.model.eventshigh.EventsHighResponse;
-import com.easyapper.eventsbatchms.model.eventshigh.OrglEventsHighDto;
+import com.easyapper.eventsbatchms.model.eventshigh.EventsHighDto;
 import com.easyapper.eventsbatchms.utilities.EALogger;
 
-@Component
-public class EventsHighReader implements ItemReader<OrglEventsHighDto> {
+public class EventsHighReader extends EAAbstractReader<EventsHighDto> {
 
 	@Autowired
-	EALogger logger;
-	
-	private List<String> eventsHighUrlList;
-	
-	private List<OrglEventsHighDto> eventList;
-	
-	/* Read Urls from csv file */
-	@Value("${eventshigh.urls.filepath}")
-	String eventshighFilename;
-	
-	@Autowired
+	@Qualifier("eaRestTemplate")
 	RestTemplate restTemplate ;
 	
-	/** Is Data refreshed for processing */
-	private boolean isEventsListRefreshed = false;
+//	private List<String> eventsHighUrlList;
+//	
+//	private List<EventsHighDto> eventList;
+//	
+////	/* Read Urls from csv file */
+////	@Value("${eventshigh.urls.filepath}")
+//	private String urlsFilename;
 	
-	/** Next Index for data to be fetched */
-	private int nextIndex = -1;
 	
-	public EventsHighReader() {
-		this.eventsHighUrlList = new ArrayList<>();
-		this.eventList = new ArrayList<>();
+//	/** Is Data refreshed for processing */
+//	private boolean isEventsListRefreshed = false;
+//	
+//	/** Next Index for data to be fetched */
+//	private int nextIndex = -1;
+//	
+	
+	
+	public EventsHighReader(String urlsFilename) {
+		super(urlsFilename);
 	}
 
-	public void addUrl(String urlList) {
-		this.eventsHighUrlList.add(urlList);
-	}
+//	public void addUrl(String urlList) {
+//		this.eventsHighUrlList.add(urlList);
+//	}
 
-	/**
-	 *  Read Events from Endpoints
-	 */
+	
+//	@Override
+//	public EventsHighDto read()
+//			throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {
+//		if(this.isEventsListRefreshed() == false) {
+//			fetchRestEventFromApis();
+//		}
+//		EventsHighDto eventDto = null;
+//		if((this.nextIndex + 1) < this.eventList.size()) {
+//			eventDto = this.eventList.get(++nextIndex);
+//		}
+//		return eventDto;
+//	}
+	
+//	private boolean isEventsListRefreshed() {
+//		return this.isEventsListRefreshed;
+//	}
+//	
+//	private void setEventsListRefreshed() {
+//		this.isEventsListRefreshed = true;
+//	}
+//	
+//	public void resetReader() {
+//		this.isEventsListRefreshed = false;
+//		this.eventList.clear();
+//		this.nextIndex = -1;
+//		refreshUrlsFromCsvFile();
+//	}
+	
+//	public void refreshUrlsFromCsvFile() {
+//		CsvFileReader csvFileReader = new CsvFileReader(this.urlsFilename);
+//		this.eventsHighUrlList = csvFileReader.getList();
+//		this.eventsHighUrlList.stream().forEach((url)->{url.trim();});
+//	}
+	
+//	private void fetchRestEventFromApis() {
+//		eventUrlsList.stream().forEach((url) -> {
+//			this.addResponseEvents(this.eventList, url);
+//		});
+//		this.setEventsListRefreshed();
+//	}
+	
+	
 	@Override
-	public OrglEventsHighDto read()
-			throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {
-		if(this.isEventsListRefreshed() == false) {
-			fetchRestEventFromApis();
-		}
-		OrglEventsHighDto eventDto = null;
-		if((this.nextIndex + 1) < this.eventList.size()) {
-			eventDto = this.eventList.get(++nextIndex);
-		}
-		return eventDto;
-	}
-	
-	private boolean isEventsListRefreshed() {
-		return this.isEventsListRefreshed;
-	}
-	
-	private void setEventsListRefreshed() {
-		this.isEventsListRefreshed = true;
-	}
-	
-	public void resetReader() {
-		this.isEventsListRefreshed = false;
-		this.eventList.clear();
-		this.nextIndex = -1;
-		refreshUrlsFromCsvFile();
-	}
-	
-	public void refreshUrlsFromCsvFile() {
-		CsvFileReader csvFileReader = new CsvFileReader(eventshighFilename);
-		this.eventsHighUrlList = csvFileReader.getList();
-		this.eventsHighUrlList.stream().forEach((url)->{url.trim();});
-	}
-	
-	private void fetchRestEventFromApis() {
-		eventsHighUrlList.stream().forEach((url) -> {
-			this.addResponseEvents(this.eventList, url);
-		});
-		this.setEventsListRefreshed();
-	}
-	
-	private void addResponseEvents(List<OrglEventsHighDto> readEventList, String url) {
+	protected void addResponseEvents(List<EventsHighDto> readEventList, String url) {
 		try {
 			ResponseEntity<EventsHighResponse> response = restTemplate.getForEntity(url, EventsHighResponse.class);
 			EventsHighResponse responseBody = response.getBody();
-			List<OrglEventsHighDto> responseEventList = responseBody.getEvents();
+			List<EventsHighDto> responseEventList = responseBody.getEvents();
 			readEventList.addAll(responseEventList);
 		}catch (IllegalArgumentException e) {
 			logger.warning("Seems like invalid URL : " + url, e);

@@ -11,7 +11,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @Getter @Setter
 @ToString
-public class OrglEventsHighPriceDto {
+public class EventsHighPriceDto {
 
 	private int id;
 	private String eid;
@@ -35,7 +35,7 @@ public class OrglEventsHighPriceDto {
 	private String time;
 	private String end_time;
 	private String is_valid;
-	private List<OrglEventsHighPriceOccurrenceDto> occurrences;
+	private List<EventsHighPriceOccurrenceDto> occurrences;
 	private double convenience_fees;
 	private double cgst;
 	private double sgst;

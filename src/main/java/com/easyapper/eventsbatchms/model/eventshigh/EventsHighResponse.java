@@ -12,6 +12,6 @@ import lombok.ToString;
 @ToString
 public class EventsHighResponse {
 
-	List<OrglEventsHighDto> events;
+	List<EventsHighDto> events;
 	
 }
