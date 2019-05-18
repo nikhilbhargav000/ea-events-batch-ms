@@ -73,6 +73,7 @@ public class EventsHighProcessor implements ItemProcessor<EventsHighDto, List<Ev
 		eventDto.setEvent_type(EABatchConstants.EVENT_TYPE_POSTED);
 		eventDto.setEvent_approved(EABatchConstants.EVENT_APPROVED_VAL_1);
 		eventDto.setOriginal_event(readEvent);
+		//Price
 		eventDto.setEvent_price(this.getProcessedPrice(readEvent));
 		//Add Event
 		eventList.add(eventDto);
@@ -227,13 +228,11 @@ public class EventsHighProcessor implements ItemProcessor<EventsHighDto, List<Ev
 				maxPrice = priceDto.getValue();
 			}
 		}
-		DecimalFormat decimalFormat = new DecimalFormat();
-		decimalFormat.setMaximumFractionDigits(2);
 		if(maxPrice != minPrice) {
-			processPrice = priceList.get(0).getCurrency() + " " + decimalFormat.format(minPrice) + " - " + 
-					decimalFormat.format(maxPrice);
+			processPrice = priceList.get(0).getCurrency() + " " + util.getTwoDecimalPlace(minPrice) + " - " + 
+					util.getTwoDecimalPlace(maxPrice);
 		}else {
-			processPrice = priceList.get(0).getCurrency() + " " + decimalFormat.format(minPrice) ;
+			processPrice = priceList.get(0).getCurrency() + " " + util.getTwoDecimalPlace(minPrice) ;
 		}
 		return processPrice;
 	}

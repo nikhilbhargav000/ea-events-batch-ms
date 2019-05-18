@@ -17,6 +17,8 @@ public class EABatchConstants {
 	public static final String EVENT_TYPE_POSTED = "posted";
 	
 	public static final String BATCH_USER_ID = "batch_user";
+	
+	public static final String FREE_PRICE_VALUE = "Free";
 
 	public static final String DATE_UAT_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 	public static final String TIME_EA_FORMAT_PATTERN = "HH:mm";

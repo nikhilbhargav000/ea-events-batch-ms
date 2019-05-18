@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,6 +19,7 @@ import com.easyapper.eventsbatchms.model.eventbrite.EventBriteDto.BriteDateTime;
 import com.easyapper.eventsbatchms.model.postevent.EventBookingDto;
 import com.easyapper.eventsbatchms.model.postevent.EventDto;
 import com.easyapper.eventsbatchms.model.postevent.LocationDto;
+import com.easyapper.eventsbatchms.provider.EventBriteProvider;
 import com.easyapper.eventsbatchms.utilities.EABatchConstants;
 import com.easyapper.eventsbatchms.utilities.EABatchUtil;
 import com.easyapper.eventsbatchms.utilities.EALogger;
@@ -29,6 +33,14 @@ public class EventBriteProcessor implements ItemProcessor<EventBriteDto, List<Ev
 	EABatchUtil util;
 	@Autowired
 	EventProcessorHelper processorHelper;
+	@Autowired
+	EventBriteProvider briteProvider;
+	@Autowired
+	EABatchConstants contants;
+	
+	private final String REGEX_PRICE_CURRENCY = ".*priceCurrency\":\"(\\w+)\".*";
+	private final String REGEX_LOW_PRICE = ".*\"lowPrice\":([0-9]+\\.[0-9]+).*";
+	private final String REGEX_HIGH_PRICE = ".*\"highPrice\":([0-9]+\\.[0-9]+).*";
 	
 	@Override
 	public List<EventDto> process(EventBriteDto readEvent) throws Exception {
@@ -54,12 +66,14 @@ public class EventBriteProcessor implements ItemProcessor<EventBriteDto, List<Ev
 		eventDto.getEvent_booking().setUrl(readEvent.getUrl());
 		eventDto.setOriginal_event(readEvent);
 		
-		String streetLine = briteAddress.getAddress_1() + " " + briteAddress.getAddress_2();
-		eventDto.getEvent_location().getAddress().setStreet(streetLine);
+		this.doUpdateAddress(eventDto, briteAddress);
 		
 		eventList.add(eventDto);
 		
-		doUpdateDateAndTime(eventDto, readEvent, eventList);
+		this.doUpdateDateAndTime(eventDto, readEvent, eventList);
+		
+		//Price
+		this.doUpdatePrice(eventDto, readEvent);
 		
 		//Category
 		List<String> categoies = new ArrayList<>();
@@ -67,6 +81,63 @@ public class EventBriteProcessor implements ItemProcessor<EventBriteDto, List<Ev
 		processorHelper.addMultiEvents_Cats(categoies, eventList);
 		
 		return eventList;
+	}
+	
+	private void doUpdatePrice(EventDto eventDto, EventBriteDto readEvent) {
+		
+		if (readEvent.is_free()) {
+			eventDto.setEvent_price(contants.FREE_PRICE_VALUE);
+		} else {
+			String responseString = briteProvider.getHtmlResponseString(readEvent.getUrl());
+			String currency = this.getMatchedGroup(REGEX_PRICE_CURRENCY, responseString, readEvent);
+			String lowPrice = this.getMatchedGroup(REGEX_LOW_PRICE, responseString, readEvent);
+			String highPrice = this.getMatchedGroup(REGEX_HIGH_PRICE, responseString, readEvent);
+			
+			String eventPrice = null;
+			if(StringUtils.isNotBlank(currency) && StringUtils.isNotBlank(lowPrice)
+					&& StringUtils.isNotBlank(highPrice)) {
+				try {
+					double lowPriceVal = Double.parseDouble(lowPrice);
+					double highPriceVal = Double.parseDouble(highPrice);
+					if(lowPriceVal != highPriceVal) {
+						eventPrice = currency + " " + lowPriceVal + " - " + highPriceVal; 
+					} else {
+						eventPrice = currency + " " + highPriceVal;
+					}
+				} catch (Exception e) {
+					String value = currency + " " + lowPrice + " - " + highPrice;
+					logger.warning("Invalid value for EventPrice : " + value + " | Original EventId : "
+							+ readEvent.getId());
+				}
+			}
+			eventDto.setEvent_price(eventPrice);
+		}
+	}
+	
+	private String getMatchedGroup(final String regex, final String responseString, EventBriteDto readEvent) {
+		String matchedString = null;
+		Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
+		Matcher matcher = pattern.matcher(responseString);
+		if (matcher.matches() && matcher.groupCount() >= 1) {
+			return matcher.group(1);
+		} else {
+			logger.warning("No match found for Price Regex : " + regex + " | Original EventId : "
+					+ readEvent.getId());
+		}
+		return matchedString;
+	}
+	
+	private void doUpdateAddress(EventDto eventDto, EventBriteAddressDto briteAddress) {
+		
+		String streetLine = null;
+		if(StringUtils.isNotBlank(briteAddress.getAddress_1()) && StringUtils.isNotBlank(briteAddress.getAddress_2())) {
+			streetLine = briteAddress.getAddress_1() + " " + briteAddress.getAddress_2();
+		} else if (StringUtils.isNotBlank(briteAddress.getAddress_1())) {
+			streetLine = briteAddress.getAddress_1();
+		} else if (StringUtils.isNotBlank(briteAddress.getAddress_2())) {
+			streetLine = briteAddress.getAddress_2();
+		}
+		eventDto.getEvent_location().getAddress().setStreet(streetLine);
 	}
 	
 	private void doUpdateDateAndTime(EventDto eventDto, EventBriteDto readEvent, List<EventDto> eventList) {
@@ -85,7 +156,6 @@ public class EventBriteProcessor implements ItemProcessor<EventBriteDto, List<Ev
 			logger.warning("In EventBriteProcessor | Unable to get date and time : Event Id : " + readEvent.getId());
 			eventList.remove(eventDto);
 		}
-		
 	}
 
 }

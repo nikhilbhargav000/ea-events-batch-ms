@@ -1,6 +1,7 @@
 package com.easyapper.eventsbatchms.utilities;
 
 import java.io.File;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -99,5 +100,10 @@ public class EABatchUtil {
 		}
 	}
 	
+	public String getTwoDecimalPlace(double value) {
+		DecimalFormat decimalFormat = new DecimalFormat();
+		decimalFormat.setMaximumFractionDigits(2);
+		return decimalFormat.format(value);
+	}
 	
 }

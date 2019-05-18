@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -33,7 +36,32 @@ public class EventBriteProvider {
 	@Qualifier("eaRestTemplate")
 	RestTemplate restTemplate;
 	@Autowired
+	@Qualifier("eaStringRestTemplate")
+	RestTemplate stringRestTemplate;
+	@Autowired
 	EALogger logger;
+	
+	public String getHtmlResponseString(String eventUrl) {
+		String responseString = null;
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.TEXT_HTML);
+		HttpEntity requestEntity = new HttpEntity<>(headers);
+		
+		try {
+			URI eventUri = new URI(eventUrl);
+			logger.info("EventBriteProvider | connecting to url : " + eventUri.toString());
+			ResponseEntity<String> response = stringRestTemplate.exchange(eventUri, HttpMethod.GET, requestEntity,
+					String.class);
+			if (response != null) {
+				responseString = response.getBody();
+			}
+		} catch(Exception e) {
+			logger.warning("Error while connecting to URL : " + eventUrl, e);
+		}
+					
+		return responseString;
+	}
 	
 	public List<EventBriteCategoryDto> getCategories(String categoryUrl) {
 		List<EventBriteCategoryDto> categories = new ArrayList<>();
